@@ -1,116 +1,122 @@
-# Coffee R Us — React Admin Showcase
+# Coffee R Us
 
-A single-page React application that serves as an admin portal for a coffee e-commerce store. Built as a summative lab demonstrating advanced React patterns.
+A React single-page application for a coffee ecommerce storefront and admin portal. The app includes product browsing, live search, product detail editing, and admin CRUD operations.
 
-## Features
+## Overview
 
-| Feature | Detail |
-|---|---|
-| **Client-side routing** | 4 routes via React Router v6 (`/`, `/shop`, `/products/:id`, `/admin`) |
-| **Custom hook** | `useProducts` — encapsulates all data fetching, state, and CRUD logic |
-| **Context API** | `ProductContext` + `useProductContext` distributes state app-wide |
-| **Standard hooks** | `useState`, `useEffect`, `useMemo`, `useCallback`, `useId`, `useRef` |
-| **Live search** | Filters products by name, origin, or description via `useMemo` |
-| **GET** | Fetches store info and all products on mount |
-| **POST** | Add a new product from the Admin page |
-| **PATCH** | Edit a product's price and origin from the Product Detail page |
-| **DELETE** | Remove a product from the catalog on the Admin page |
-| **Tests** | Vitest + React Testing Library — covers all components and routes |
-| **Responsive design** | Mobile-first CSS, matches the mockup design document |
+This project uses:
 
----
+- React 18 with Vite
+- React Router v6 for client-side routing
+- A custom hook (`useProducts`) for data fetching and state
+- Context API for app-wide product state
+- Axios for API requests
+- JSON Server for local backend development
+- Vitest + React Testing Library for unit tests
 
 ## Setup
 
 ### Prerequisites
-- Node.js ≥ 18
-- npm ≥ 9
+
+- Node.js 18 or newer
+- npm 9 or newer
 
 ### Install dependencies
+
 ```bash
 npm install
 ```
 
-### Run the app (dev mode + backend together)
+### Run locally
+
 ```bash
 npm run dev
 ```
 
-This runs **both** the Vite dev server (port 5173) and the JSON Server backend (port 4000) concurrently.
-
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+This starts the frontend on `http://localhost:5173` and the local JSON Server backend on `http://localhost:4000`.
 
 ### Run backend only
+
 ```bash
 npm run server
 ```
 
 ### Run tests
+
 ```bash
 npm test
 ```
 
----
+## Deployment
 
-## Project Structure
+### Frontend deployment
+
+1. Build the app:
+   ```bash
+   npm run build
+   ```
+2. Deploy the `dist/` folder to a static host such as Vercel or Netlify.
+3. If using Netlify, keep the existing `public/_redirects` file so client-side routing works.
+
+### Backend deployment
+
+The current backend uses `json-server` and is intended for local development only. For production, deploy a real API and configure the frontend environment variable:
+
+- `VITE_API_URL=https://your-backend-url.com`
+
+The app expects the backend to expose these endpoints:
+
+- `GET /store_info`
+- `GET /coffee`
+- `POST /coffee`
+- `PATCH /coffee/:id`
+- `DELETE /coffee/:id`
+
+If you do not deploy a backend, the frontend will not be fully functional because it relies on API requests.
+
+## Project structure
 
 ```
 src/
-├── __tests__/          # Vitest test files for every feature
+├── __tests__/          # Vitest test files
+│   ├── Admin.test.jsx
+│   ├── App.test.jsx
 │   ├── NavBar.test.jsx
 │   ├── ProductCard.test.jsx
 │   ├── ProductForm.test.jsx
-│   ├── Products.test.jsx
-│   └── Admin.test.jsx
+│   └── Products.test.jsx
 ├── components/         # Reusable UI components
 │   ├── NavBar.jsx
 │   ├── ProductCard.jsx
 │   └── ProductForm.jsx
 ├── context/
-│   └── ProductContext.jsx   # React Context + useProductContext hook
+│   └── ProductContext.jsx
 ├── hooks/
-│   └── useProducts.js       # Custom hook — all data & CRUD logic
+│   └── useProducts.js
 ├── routes/             # Page-level components
+│   ├── Admin.jsx
 │   ├── Home.jsx
-│   ├── Products.jsx
 │   ├── ProductDetail.jsx
-│   └── Admin.jsx
-├── App.jsx             # Router + provider setup
-├── index.css           # Design system (CSS custom properties)
+│   └── Products.jsx
+├── App.css
+├── App.jsx
+├── index.css
 ├── main.jsx
 └── vitest.setup.js
-db.json                 # JSON Server mock backend
+db.json                 # Local JSON Server mock data
 ```
-
----
 
 ## Pages
 
-| Route | Page | Description |
-|---|---|---|
-| `/` | Home | Landing page with store info, stats, and workflow overview |
-| `/shop` | Shop | Browse all products with live search |
-| `/products/:id` | Product Detail | View details and edit price / origin (PATCH) |
-| `/admin` | Admin Portal | Add new products (POST) and remove existing ones (DELETE) |
+| Route           | Page           | Description                      |
+| --------------- | -------------- | -------------------------------- |
+| `/`             | Home           | Store overview and stats         |
+| `/shop`         | Shop           | Browse products with live search |
+| `/products/:id` | Product Detail | Edit product price and origin    |
+| `/admin`        | Admin          | Add and delete products          |
 
----
+## Notes
 
-## Known Limitations
-
-- JSON Server data resets if `db.json` is replaced. To persist additions across sessions, keep `db.json` in version control.
-- No authentication on the admin portal (out of scope for this lab).
-- Images are not supported for products in this version.
-
----
-
-## Deployment (Netlify)
-
-1. `npm run build` — outputs static files to `dist/`
-2. Deploy `dist/` to [Netlify](https://netlify.com) via drag-and-drop or the Netlify CLI.
-3. Add a `_redirects` file inside `public/` with the content below so React Router works on Netlify:
-
-```
-/*    /index.html   200
-```
-
-> **Note:** The JSON Server backend is a local mock. For a deployed version, replace it with a real API (e.g. Railway, Render, or Supabase).
+- `db.json` is used only for local development.
+- The production deployment should use a real backend service and set `VITE_API_URL` accordingly.
+- `npm run dev` runs the frontend and JSON Server together for development.
