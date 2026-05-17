@@ -1,0 +1,30 @@
+{
+  "name": "coffee-r-us",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"json-server --watch db.json --port 4000\" \"vite\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "server": "json-server --watch db.json --port 4000"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.23.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^8.2.2",
+    "jsdom": "^24.1.0",
+    "json-server": "^0.17.4",
+    "vitest": "^1.6.0"
+  }
+}
