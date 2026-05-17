@@ -1,7 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+// Determine API base URL from env variables. Support either:
+// - VITE_API_URL (explicit REST base), or
+// - VITE_SUPABASE_URL (Supabase project URL) which needs "/rest/v1" appended.
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.VITE_SUPABASE_URL
+    ? `${import.meta.env.VITE_SUPABASE_URL}/rest/v1`
+    : "http://localhost:4000");
 const API_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const api = axios.create({
@@ -10,6 +17,7 @@ const api = axios.create({
     apikey: API_KEY,
     Authorization: `Bearer ${API_KEY}`,
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 
@@ -72,14 +80,21 @@ export function useProducts() {
 
   /** POST — add a new coffee product */
   const addProduct = useCallback(async (product) => {
-    const res = await api.post("/coffee", product);
-    setProducts((prev) => [...prev, res.data[0] ?? res.data]);
-    return res.data;
+    // Ask Supabase REST to return the created row
+    const res = await api.post("/coffee", product, {
+      headers: { Prefer: "return=representation" },
+    });
+    const data = Array.isArray(res.data) ? res.data[0] : res.data;
+    setProducts((prev) => [...prev, data]);
+    return data;
   }, []);
 
   /** PATCH — edit price / origin of an existing product */
   const editProduct = useCallback(async (id, updates) => {
-    const res = await api.patch(`/coffee?id=eq.${id}`, updates);
+    // Use Supabase REST filter and request the updated row
+    const res = await api.patch(`/coffee?id=eq.${id}`, updates, {
+      headers: { Prefer: "return=representation" },
+    });
     const updated = Array.isArray(res.data) ? res.data[0] : res.data;
     setProducts((prev) =>
       prev.map((item) => (item.id === id ? updated : item)),
