@@ -2,18 +2,28 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const api = axios.create({
+  baseURL: API_BASE,
+  headers: {
+    apikey: API_KEY,
+    Authorization: `Bearer ${API_KEY}`,
+    "Content-Type": "application/json",
+  },
+});
 
 /**
  * useProducts — custom hook that manages all product state and CRUD operations.
- * Fetches store info and coffee products from the JSON Server backend.
+ * Fetches store info and coffee products from the backend.
  * Exposes filtered products based on a live search term.
  */
 export function useProducts() {
-  const [storeInfo, setStoreInfo]   = useState(null);
-  const [products, setProducts]     = useState([]);
-  const [search, setSearch]         = useState("");
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState("");
+  const [storeInfo, setStoreInfo] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // ── Initial data fetch ──────────────────────────────
   useEffect(() => {
@@ -24,22 +34,26 @@ export function useProducts() {
       setError("");
       try {
         const [storeRes, productRes] = await Promise.all([
-          axios.get(`${API_BASE}/store_info`),
-          axios.get(`${API_BASE}/coffee`),
+          api.get("/store_info"),
+          api.get("/coffee"),
         ]);
         if (!active) return;
         setStoreInfo(storeRes.data[0] ?? null);
         setProducts(productRes.data);
       } catch {
         if (!active) return;
-        setError("Unable to load store data. Make sure the backend is running.");
+        setError(
+          "Unable to load store data. Make sure the backend is running.",
+        );
       } finally {
         if (active) setLoading(false);
       }
     }
 
     load();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   // ── Derived: filtered products ──────────────────────
@@ -58,30 +72,31 @@ export function useProducts() {
 
   /** POST — add a new coffee product */
   const addProduct = useCallback(async (product) => {
-    const res = await axios.post(`${API_BASE}/coffee`, product);
-    setProducts((prev) => [...prev, res.data]);
+    const res = await api.post("/coffee", product);
+    setProducts((prev) => [...prev, res.data[0] ?? res.data]);
     return res.data;
   }, []);
 
   /** PATCH — edit price / origin of an existing product */
   const editProduct = useCallback(async (id, updates) => {
-    const res = await axios.patch(`${API_BASE}/coffee/${id}`, updates);
+    const res = await api.patch(`/coffee?id=eq.${id}`, updates);
+    const updated = Array.isArray(res.data) ? res.data[0] : res.data;
     setProducts((prev) =>
-      prev.map((item) => (item.id === id ? res.data : item)),
+      prev.map((item) => (item.id === id ? updated : item)),
     );
-    return res.data;
+    return updated;
   }, []);
 
   /** DELETE — remove a product */
   const deleteProduct = useCallback(async (id) => {
-    await axios.delete(`${API_BASE}/coffee/${id}`);
+    await api.delete(`/coffee?id=eq.${id}`);
     setProducts((prev) => prev.filter((item) => item.id !== id));
   }, []);
 
   return {
     storeInfo,
-    products: filteredProducts,   // filtered list (used in shop)
-    allProducts: products,        // unfiltered list (used in admin & home)
+    products: filteredProducts, // filtered list (used in shop)
+    allProducts: products, // unfiltered list (used in admin & home)
     loading,
     error,
     search,
